@@ -1,11 +1,10 @@
-// Super-minimalist library for Winbond W25Q80BV serial flash memory.
-// Written with the limited space of the ATtiny85 in mind, but works
-// on regular Arduinos too.  Provides basic functions needed for audio
-// playback system only: chip erase, block write, sequential byte read.
+// Barebones library for Winbond W25Q80BV serial flash memory.  Written
+// with the limited space of the ATtiny85 in mind, but works on regular
+// Arduinos too.  Provides basic functions needed for audio playback
+// system only: chip and sector erase, block write, sequential byte read.
 // Other than possibly adding support for other Winbond flash in the
-// future, the goal is to NOT bloat this out with bells and whistles;
-// there are no fine-grained erase or write ops, nor block reads, nor
-// buffered writes.  The latter two (if needed) can be implemented in
+// future, the plan is to NOT bloat this out with all bells and whistles;
+// functions like block reads or buffered writes can be implemented in
 // client code where RAM can be better managed in the context of the
 // overall application (1 flash page = 1/2 the ATtiny85's RAM).
 // Written by Limor Fried and Phillip Burgess for Adafruit Industries.
@@ -18,6 +17,7 @@
 #define CMD_WRITEDISABLE 0x04
 #define CMD_READSTAT1    0x05
 #define CMD_WRITEENABLE  0x06
+#define CMD_SECTORERASE  0x20
 #define CMD_CHIPERASE    0x60
 #define CMD_ID           0x90
 
@@ -134,8 +134,7 @@ void Adafruit_TinyFlash::endRead(void) {
 	CHIP_DESELECT
 }
 
-// Erase the whole chip.  Boom, gone.  Use with caution.  This is the
-// ONLY erase function provided by the library (no sector or block).
+// Erase the whole chip.  Boom, gone.  Use with caution.
 boolean Adafruit_TinyFlash::eraseChip(void) {
 
 	if(!waitForReady() || !writeEnable()) return false;
@@ -146,6 +145,24 @@ boolean Adafruit_TinyFlash::eraseChip(void) {
 	CHIP_DESELECT
 
 	if(!waitForReady(10000L)) return false; // Datasheet says 6S max
+
+	writeDisable();
+
+	return true;
+}
+
+// Erase one 4K sector
+boolean Adafruit_TinyFlash::eraseSector(uint32_t addr) {
+
+	if(!waitForReady() || !writeEnable()) return false;
+
+	cmd(CMD_SECTORERASE);
+	(void)spi_xfer(addr >> 16); // Chip rounds this down to
+	(void)spi_xfer(addr >>  8); // prior 4K sector boundary;
+	(void)spi_xfer(0         ); // lowest bits are ignored.
+	CHIP_DESELECT
+
+	if(!waitForReady(1000L)) return false; // Datasheet says 400ms max
 
 	writeDisable();
 

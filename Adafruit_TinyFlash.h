@@ -13,7 +13,8 @@ class Adafruit_TinyFlash {
   uint32_t          begin(void);
   boolean           beginRead(uint32_t addr),
                     writePage(uint32_t addr, uint8_t *data),
-                    eraseChip(void);
+                    eraseChip(void),
+                    eraseSector(uint32_t addr);
   uint8_t           readNextByte(void);
   void              endRead(void);
  private:
