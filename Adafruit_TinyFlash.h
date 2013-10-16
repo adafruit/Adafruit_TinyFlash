@@ -18,7 +18,7 @@ class Adafruit_TinyFlash {
   uint8_t           readNextByte(void);
   void              endRead(void);
  private:
-  boolean           waitForReady(uint32_t timeout = 1L),
+  boolean           waitForReady(uint32_t timeout = 100L),
                     writeEnable(void);
   void              writeDisable(void),
                     cmd(uint8_t c);
