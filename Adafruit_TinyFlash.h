@@ -24,8 +24,10 @@ class Adafruit_TinyFlash {
                     cmd(uint8_t c);
 #ifndef __AVR_ATtiny85__
   volatile uint8_t *cs_port;
+  uint8_t           cs_pin;
 #endif
   uint8_t           cs_mask;
+
 };
 
 #endif // _TINYFLASH_H_
