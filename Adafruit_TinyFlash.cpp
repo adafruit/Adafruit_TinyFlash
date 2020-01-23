@@ -57,9 +57,10 @@ static uint8_t spi_xfer(uint8_t n) {
 #endif
 
 // Constructor
-Adafruit_TinyFlash::Adafruit_TinyFlash(uint8_t cs) {
+Adafruit_TinyFlash::Adafruit_TinyFlash(uint8_t cs){
 #ifndef __AVR_ATtiny85__
 	cs_port = portOutputRegister(digitalPinToPort(cs));
+	cs_pin = cs;
 #endif
 	cs_mask = digitalPinToBitMask(cs);
 }
@@ -81,6 +82,7 @@ uint32_t Adafruit_TinyFlash::begin(void) {
               |   _BV(PORTB2)  // SCK
               |   cs_mask;     // CS
 #else
+	pinMode(cs_pin,OUTPUT);
 	SPI.begin();
 	// Resistor-based 5V->3.3V logic conversion is a little sloppy, so:
 	SPI.setClockDivider(SPI_CLOCK_DIV8); // 500 KHz
