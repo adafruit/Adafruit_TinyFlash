@@ -22,5 +22,5 @@ Written by Written by Limor Fried and Phil Burgess for Adafruit Industries.
 
 MIT license, all text above must be included in any redistribution
 
-To install, use the Arduino Library Manager and search for "Adafruit AM radio library" and install the library.
+To install, use the Arduino Library Manager and search for "Adafruit TinyFlash" and install the library.
 
