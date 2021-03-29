@@ -24,8 +24,13 @@
 #define STAT_BUSY 0x01
 #define STAT_WRTEN 0x02
 
-// Currently rigged for W25Q80BV only
-#define CHIP_BYTES 1L * 1024L * 1024L
+#define CHIP_BYTES_W25Q80 1L * 1024L * 1024L
+#define CHIP_BYTES_W25Q16 2L * 1024L * 1024L
+#define CHIP_BYTES_W25Q32 4L * 1024L * 1024L
+#define CHIP_BYTES_W25Q64 8L * 1024L * 1024L
+#define CHIP_BYTES_W25Q128 16L * 1024L * 1024L
+
+uint32_t __capacity;
 
 #ifdef __AVR_ATtiny85__
 
@@ -49,7 +54,7 @@ static uint8_t spi_xfer(uint8_t n) {
 
 #else
 
-#include <SPI.h>
+#include <SPIMemory.h>
 #define CHIP_SELECT *cs_port &= ~cs_mask;
 #define CHIP_DESELECT *cs_port |= cs_mask;
 #define spi_xfer(n) SPI.transfer(n)
@@ -84,9 +89,10 @@ void Adafruit_TinyFlash::cmd(uint8_t c) { CHIP_SELECT(void) spi_xfer(c); }
  *
  * @return uint32_t The chip capacity in bytes
  */
+SPIFlash flash;
 uint32_t Adafruit_TinyFlash::begin(void) {
-  uint8_t manID, devID;
-
+  uint32_t JedecID;
+  flash.begin();
 #ifdef __AVR_ATtiny85__
   PORTB &= ~(_BV(PORTB0) | _BV(PORTB1) | _BV(PORTB2) | cs_mask);
   DDRB &= ~_BV(PORTB0); // DI (NOT MISO)
@@ -100,14 +106,31 @@ uint32_t Adafruit_TinyFlash::begin(void) {
   SPI.setClockDivider(SPI_CLOCK_DIV8); // 500 KHz
 #endif
 
-  cmd(CMD_ID);
-  for (uint8_t i = 0; i < 4; i++)
-    manID = spi_xfer(0); // 3 dummy bytes first
-  devID = spi_xfer(0);
-  CHIP_DESELECT
+  JedecID = flash.getJEDECID();
+  
 
-  // Chip capacity is hardcoded for now
-  return ((manID == 0xEF) && (devID == 0x13)) ? CHIP_BYTES : 0L;
+  switch (JedecID)
+  {
+  case 0xEF4014:
+    __capacity = CHIP_BYTES_W25Q80;
+    break;
+  case 0xEF4015:
+    __capacity = CHIP_BYTES_W25Q16;
+    break;
+  case 0xEF4016:
+    __capacity = CHIP_BYTES_W25Q32;
+    break;
+  case 0xEF4017:
+    __capacity = CHIP_BYTES_W25Q64;
+    break;
+  case 0xEF4018:
+    __capacity = CHIP_BYTES_W25Q128;
+    break;
+  default:
+    __capacity = 0L;
+    break;
+  }
+  return __capacity;
 }
 
 //
@@ -142,7 +165,7 @@ boolean Adafruit_TinyFlash::waitForReady(uint32_t timeout) {
  */
 boolean Adafruit_TinyFlash::beginRead(uint32_t addr) {
 
-  if ((addr >= CHIP_BYTES) || !waitForReady())
+  if ((addr >= __capacity) || !waitForReady())
     return false;
 
   cmd(CMD_READDATA);
@@ -259,7 +282,7 @@ bountry, the preceding boundry address will be used
  * @return boolean true: success false: failure
  */
 boolean Adafruit_TinyFlash::writePage(uint32_t addr, uint8_t *data) {
-  if ((addr >= CHIP_BYTES) || !waitForReady() || !writeEnable())
+  if ((addr >= __capacity) || !waitForReady() || !writeEnable())
     return false;
 
   cmd(CMD_PAGEPROG);
