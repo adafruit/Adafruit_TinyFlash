@@ -1,4 +1,9 @@
-# Adafruit TinyFlash [![Build Status](https://github.com/adafruit/Adafruit_TinyFlash/workflows/Arduino%20Library%20CI/badge.svg)](https://github.com/adafruit/Adafruit_TinyFlash/actions)
+# [DEPRECATED] Adafruit TinyFlash [![Build Status](https://github.com/adafruit/Adafruit_TinyFlash/workflows/Arduino%20Library%20CI/badge.svg)](https://github.com/adafruit/Adafruit_TinyFlash/actions)
+
+**This library has been deprecated**
+
+**See [Adafruit_SPIFlash](https://github.com/adafruit/Adafruit_SPIFlash)**
+
 
 Barebones Winbond SPI flash library for Arduino and Trinket
 
